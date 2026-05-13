@@ -39,6 +39,17 @@ try
     builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
     builder.Services.AddDomainEventHandlers(typeof(Program).Assembly);
 
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("ReactApp", policy =>
+            policy.WithOrigins(
+                "http://localhost:3000",
+                "http://localhost:3002")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials());
+    });
+
     builder.Services.AddJwtAuthentication(builder.Configuration);
     builder.Services.AddApiRateLimiting();
     builder.Services.AddApiSwagger();
@@ -75,6 +86,7 @@ try
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseApiSwagger();
     app.UseHttpsRedirection();
+    app.UseCors("ReactApp");
     app.UseAuthentication();
     app.UseAuthorization();
     app.UseRateLimiter(); // after auth so user identity is available for the "api" policy

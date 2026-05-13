@@ -66,11 +66,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (data: LoginRequest) => {
     try {
       const resp = await authApi.login(data);
-      localStorage.setItem('accessToken', resp.accessToken);
-      localStorage.setItem('refreshToken', resp.refreshToken);
+      console.log('resp', resp);
+      localStorage.setItem('accessToken', resp.data.accessToken);
+      localStorage.setItem('refreshToken', resp.data.refreshToken);
       localStorage.setItem('tenantId', data.tenantId);
       setTenantId(data.tenantId);
-      setUser(claimsToUser(resp.accessToken));
+      setUser(claimsToUser(resp.data.accessToken));
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }
@@ -79,11 +80,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = useCallback(async (data: RegisterRequest) => {
     try {
       const resp = await authApi.register(data);
-      localStorage.setItem('accessToken', resp.accessToken);
-      localStorage.setItem('refreshToken', resp.refreshToken);
+      localStorage.setItem('accessToken', resp.data.accessToken);
+      localStorage.setItem('refreshToken', resp.data.refreshToken);
       localStorage.setItem('tenantId', data.tenantId);
       setTenantId(data.tenantId);
-      setUser(claimsToUser(resp.accessToken));
+      setUser(claimsToUser(resp.data.accessToken));
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }

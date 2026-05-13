@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import type {
+  ApiResponse,
   TokenResponse, LoginRequest, RegisterRequest,
   UserDto, RoleDto, PermissionDto,
   CreateRoleRequest, AssignRoleRequest, AssignPermissionRequest,
@@ -7,10 +8,10 @@ import type {
 
 export const authApi = {
   login: (data: LoginRequest) =>
-    apiClient.post<TokenResponse>('/auth/login', data).then(r => r.data),
+    apiClient.post<ApiResponse<TokenResponse>>('/auth/login', data).then(r => r.data),
 
   register: (data: RegisterRequest) =>
-    apiClient.post<TokenResponse>('/auth/register', data).then(r => r.data),
+    apiClient.post<ApiResponse<TokenResponse>>('/auth/register', data).then(r => r.data),
 
   revoke: (refreshToken: string) =>
     apiClient.post('/auth/revoke', { refreshToken }),

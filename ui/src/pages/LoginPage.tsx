@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Field, Input, Button } from '../components/FormField';
 import toast from 'react-hot-toast';
@@ -11,6 +12,7 @@ const DEMO_TENANT_ID = '00000000-0000-0000-0000-000000000001';
 
 export default function LoginPage() {
   const { login, register } = useAuth();
+  const navigate = useNavigate();
   // Default to Sign In — admin credentials are pre-seeded on startup
   const [tab, setTab] = useState<Tab>('login');
   const [loading, setLoading] = useState(false);
@@ -34,7 +36,7 @@ export default function LoginPage() {
     try {
       await login(loginForm);
       toast.success('Welcome back!');
-      // PublicRoute automatically redirects to "/" once isAuthenticated becomes true
+      navigate('/');
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Login failed');
     } finally {
@@ -48,7 +50,7 @@ export default function LoginPage() {
     try {
       await register(regForm);
       toast.success('Account created! Welcome.');
-      // PublicRoute automatically redirects to "/" once isAuthenticated becomes true
+      navigate('/');
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Registration failed');
     } finally {

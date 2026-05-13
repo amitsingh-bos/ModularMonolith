@@ -1,4 +1,13 @@
 // ─── Auth ─────────────────────────────────────────────────────────────────────
+export interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+  message?: string;
+  statusCode: number;
+  errors: string[];
+  pagination?: unknown;
+}
+
 export interface TokenResponse {
   accessToken: string;
   refreshToken: string;
