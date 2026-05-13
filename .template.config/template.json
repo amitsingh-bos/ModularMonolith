@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Amit Singh",
+  "classifications": [
+    "Web",
+    "API",
+    "Modular Monolith",
+    "DDD",
+    "Clean Architecture"
+  ],
+  "identity": "ModularMonolith.Boilerplate.CSharp",
+  "name": "Modular Monolith API",
+  "shortName": "modularmonolith",
+  "description": ".NET 9 Modular Monolith starter — JWT auth, rate limiting, Swagger, EF Core + PostgreSQL, multi-tenancy, and DDD building blocks.",
+  "sourceName": "ModularMonolith",
+  "preferNameDirectory": true,
+  "tags": {
+    "language": "C#",
+    "type": "solution"
+  },
+  "guids": [
+    "827E0CD3-B72D-47B6-A68D-7590B98EB39B",
+    "00991D10-4643-41AB-B480-8A54B7E436E2",
+    "0AB3BF05-4346-4AA6-1389-037BE0695223",
+    "D5E3941D-2661-469C-8DE5-B39AA65EEE4C",
+    "FECD4532-3323-4B48-9B11-96C8C444B4A2"
+  ],
+  "sources": [
+    {
+      "exclude": [
+        "**/bin/**",
+        "**/obj/**",
+        "**/.vs/**",
+        "**/.vscode/**",
+        "**/.git/**",
+        "**/*.user",
+        ".template.config/**"
+      ]
+    }
+  ]
+}

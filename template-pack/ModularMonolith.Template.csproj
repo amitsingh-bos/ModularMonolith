@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- NuGet identity -->
+    <PackageId>BosFramework.ModularMonolith.Template</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Title>Modular Monolith API</Title>
+    <Authors>Amit Singh</Authors>
+    <Company>BosFramework</Company>
+    <Copyright>© 2026 BosFramework</Copyright>
+
+    <!-- Description shown on nuget.org -->
+    <Description>
+      Production-ready .NET 9 Modular Monolith starter.
+      Includes: JWT Bearer auth, per-IP/per-user rate limiting (fixed + sliding window),
+      Swagger/OpenAPI with security, EF Core 9 + PostgreSQL, soft-delete, multi-tenancy,
+      DDD building blocks (AggregateRoot, ValueObject, DomainEvents), FluentValidation,
+      Serilog, API versioning, and Docker Compose.
+      Scaffold a new project in one command: dotnet new modularmonolith -n YourProject.Name
+    </Description>
+
+    <!-- Discovery tags on nuget.org -->
+    <PackageTags>dotnet-new;template;modular-monolith;ddd;clean-architecture;asp.net-core;jwt;postgresql;efcore;rate-limiting;swagger;multi-tenancy;boilerplate</PackageTags>
+
+    <!-- Required for dotnet new template packages -->
+    <PackageType>Template</PackageType>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+
+    <!-- Ensures .template.config (dot-prefixed folder) is not silently excluded -->
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+
+    <!-- Prevent SDK from adding framework dependencies to the package -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+
+    <!-- README shown on nuget.org package page -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- Needed only to satisfy the SDK; no actual compilation happens -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Include everything from the solution root.
+      Excludes:
+        - build artifacts  (bin / obj)
+        - IDE state        (.vs / .vscode)
+        - git history      (.git)
+        - user overrides   (*.user)
+        - this pack project itself
+    -->
+    <Content Include="../**"
+             Exclude="../**/bin/**;
+                       ../**/obj/**;
+                       ../**/.git/**;
+                       ../**/.vs/**;
+                       ../**/.vscode/**;
+                       ../**/*.user;
+                       ../template-pack/**" />
+  </ItemGroup>
+
+</Project>

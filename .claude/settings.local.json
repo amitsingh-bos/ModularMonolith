@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet new *)",
+      "Bash(dotnet sln *)",
+      "Bash(dotnet add *)",
+      "Bash(dotnet restore *)",
+      "Bash(dotnet build *)",
+      "Bash(Remove-Item D:/ModularMonolith/src/ModularMonolith/WeatherForecast.cs -Force)",
+      "Bash(Remove-Item D:/ModularMonolith/src/ModularMonolith/Controllers/WeatherForecastController.cs -Force)",
+      "Bash(Remove-Item D:/ModularMonolith/tests/ModularMonolith.UnitTests/UnitTest1.cs -Force)",
+      "Bash(Remove-Item D:/ModularMonolith/tests/ModularMonolith.IntegrationTests/UnitTest1.cs -Force)",
+      "Bash(New-Item -ItemType Directory -Force -Path D:/ModularMonolith/src/ModularMonolith/BuildingBlocks/Domain/Primitives)",
+      "Bash(Out-Null)",
+      "Bash(New-Item -ItemType Directory -Force -Path D:/ModularMonolith/src/ModularMonolith/BuildingBlocks/Domain/Abstractions)",
+      "Bash(New-Item -ItemType Directory -Force -Path D:/ModularMonolith/src/ModularMonolith/BuildingBlocks/Domain/Exceptions)",
+      "Bash(New-Item -ItemType Directory -Force -Path D:/ModularMonolith/src/ModularMonolith/BuildingBlocks/Application/Abstractions)",
+      "Bash(New-Item -ItemType Directory -Force -Path D:/ModularMonolith/src/ModularMonolith/BuildingBlocks/Application/Common)",
+      "Bash(New-Item -ItemType Directory -Force -Path D:/ModularMonolith/src/ModularMonolith/BuildingBlocks/Infrastructure/Persistence/Interceptors)",
+      "Bash(New-Item -ItemType Directory -Force -Path D:/ModularMonolith/src/ModularMonolith/BuildingBlocks/Infrastructure/Multitenancy)",
+      "Bash(New-Item -ItemType Directory -Force -Path D:/ModularMonolith/src/ModularMonolith/BuildingBlocks/Infrastructure/Options)",
+      "Bash(not exist *)",
+      "Bash(dotnet ef *)",
+      "PowerShell(netstat *)",
+      "Bash(dotnet list *)",
+      "Bash(docker compose *)",
+      "Bash(curl *)"
+    ]
+  }
+}
