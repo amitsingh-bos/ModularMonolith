@@ -1,18 +1,18 @@
 import { apiClient } from './client';
-import type { OrderDto, CreateOrderRequest, CancelOrderRequest } from '../types';
+import type { ApiResponse, OrderDto, CreateOrderRequest, CancelOrderRequest } from '../types';
 
 export const ordersApi = {
   getOrders: (params?: { tenantId?: string; customerId?: string; status?: string }) =>
-    apiClient.get<OrderDto[]>('/orders', { params }).then(r => r.data),
+    apiClient.get<ApiResponse<OrderDto[]>>('/orders', { params }).then(r => r.data.data),
 
   getOrder: (id: string) =>
-    apiClient.get<OrderDto>(`/orders/${id}`).then(r => r.data),
+    apiClient.get<ApiResponse<OrderDto>>(`/orders/${id}`).then(r => r.data.data),
 
   createOrder: (data: CreateOrderRequest) =>
-    apiClient.post<OrderDto>('/orders', data).then(r => r.data),
+    apiClient.post<ApiResponse<OrderDto>>('/orders', data).then(r => r.data.data),
 
   confirmOrder: (id: string) =>
-    apiClient.post<OrderDto>(`/orders/${id}/confirm`).then(r => r.data),
+    apiClient.post<ApiResponse<OrderDto>>(`/orders/${id}/confirm`).then(r => r.data.data),
 
   cancelOrder: (id: string, data: CancelOrderRequest) =>
     apiClient.post<OrderDto>(`/orders/${id}/cancel`, data).then(r => r.data),

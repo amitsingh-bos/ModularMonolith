@@ -44,14 +44,20 @@ export default function DashboardPage() {
     queryFn: () => authApi.getUsers({ tenantId }),
   });
 
-  const revenue = payments
-    .filter(p => p.status === 'Completed')
-    .reduce((sum, p) => sum + p.amount, 0);
+  //const revenue = payments
+  //  .filter(p => p.status === 'Completed')
+  //  .reduce((sum, p) => sum + p.amount, 0);
+  console.log('payments', payments);
+  const revenue = 0;
 
-  const pendingOrders = orders.filter(o => o.status === 'Pending').length;
-  const lowStock = products.filter(p => p.stockQuantity < 10).length;
-  const recentOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
-  const recentPayments = [...payments].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+  //const pendingOrders = orders.filter(o => o.status === 'Pending').length;
+  const pendingOrders = 0;
+  //const lowStock = products.filter(p => p.stockQuantity < 10).length;
+  const lowStock = 0;
+  //const recentOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+  const recentOrders = [];
+  //const recentPayments = [...payments].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+  const recentPayments = [];
 
   return (
     <div className="space-y-6">
