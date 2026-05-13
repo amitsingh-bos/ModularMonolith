@@ -44,6 +44,8 @@ public sealed class RoleRepository : RepositoryBase<Role>, IRoleRepository
     public async Task AddAsync(Role role, CancellationToken ct) =>
         await AddEntityAsync(role, ct);
 
+    public void Delete(Role role) => _context.Roles.Remove(role);
+
     public Task<int> SaveChangesAsync(CancellationToken ct) =>
         _context.SaveChangesAsync(ct);
 }

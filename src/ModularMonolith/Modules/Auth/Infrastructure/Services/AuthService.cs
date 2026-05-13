@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using ModularMonolith.BuildingBlocks.Infrastructure.Authorization;
 using ModularMonolith.BuildingBlocks.Infrastructure.Options;
 using ModularMonolith.Modules.Auth.Application.Abstractions;
 using ModularMonolith.Modules.Auth.Application.DTOs;
@@ -15,6 +16,8 @@ public sealed class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly IRoleRepository _roleRepository;
+    private readonly IPermissionRepository _permissionRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenService _tokenService;
     private readonly RefreshTokenOptions _refreshOptions;
@@ -31,6 +34,8 @@ public sealed class AuthService : IAuthService
     public AuthService(
         IUserRepository userRepository,
         IRefreshTokenRepository refreshTokenRepository,
+        IRoleRepository roleRepository,
+        IPermissionRepository permissionRepository,
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
         IOptions<RefreshTokenOptions> refreshOptions,
@@ -46,6 +51,8 @@ public sealed class AuthService : IAuthService
     {
         _userRepository = userRepository;
         _refreshTokenRepository = refreshTokenRepository;
+        _roleRepository = roleRepository;
+        _permissionRepository = permissionRepository;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
         _refreshOptions = refreshOptions.Value;
@@ -71,6 +78,25 @@ public sealed class AuthService : IAuthService
         await _userRepository.AddAsync(user, ct);
         await _userRepository.SaveChangesAsync(ct);
 
+        // First user in a tenant becomes Admin; all subsequent users get the User role
+        var userCount = await _userRepository.CountByTenantAsync(request.TenantId, ct);
+        var roleName = userCount == 1 ? "Admin" : "User";
+        var permissionCodes = userCount == 1 ? Permissions.All : Permissions.UserDefault;
+
+        var role = await _roleRepository.GetByNameAsync(roleName, request.TenantId, ct);
+        if (role is null)
+        {
+            role = Role.Create(request.TenantId, roleName, isSystemRole: true);
+            var perms = await _permissionRepository.GetByCodesAsync(permissionCodes, ct);
+            foreach (var p in perms)
+                role.AddPermission(p.Id);
+            await _roleRepository.AddAsync(role, ct);
+            await _roleRepository.SaveChangesAsync(ct);
+        }
+
+        user.AssignRole(role.Id);
+        await _userRepository.SaveChangesAsync(ct);
+
         var rawRefreshToken = _tokenService.GenerateRefreshToken();
         var tokenHash = _tokenService.HashToken(rawRefreshToken);
         var refreshToken = RefreshToken.Create(
@@ -81,7 +107,9 @@ public sealed class AuthService : IAuthService
         await _refreshTokenRepository.AddAsync(refreshToken, ct);
         await _refreshTokenRepository.SaveChangesAsync(ct);
 
-        var accessToken = _tokenService.GenerateAccessToken(user, [], []);
+        var roleNames = new[] { roleName };
+        var permissions = permissionCodes.ToArray();
+        var accessToken = _tokenService.GenerateAccessToken(user, roleNames, permissions);
         return new TokenResponseDto(accessToken, rawRefreshToken, _refreshOptions.ExpiryDays * 86400);
     }
 

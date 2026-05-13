@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using ModularMonolith.BuildingBlocks.Infrastructure.Authorization;
 using ModularMonolith.BuildingBlocks.Infrastructure.Options;
 
 namespace ModularMonolith.BuildingBlocks.Infrastructure.Authentication;
@@ -66,7 +67,12 @@ public static class JwtAuthenticationExtensions
                 };
             });
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            foreach (var permission in Permissions.All)
+                options.AddPolicy(permission, policy =>
+                    policy.RequireClaim("permission", permission));
+        });
 
         return services;
     }
