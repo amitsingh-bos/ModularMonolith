@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using ModularMonolith.BuildingBlocks.Application.Abstractions;
 using ModularMonolith.BuildingBlocks.Domain.Primitives;
 using ModularMonolith.Modules.Auth.Domain.Entities;
@@ -7,6 +8,12 @@ namespace ModularMonolith.BuildingBlocks.Infrastructure.Persistence;
 
 public sealed class AuditLogger : IAuditLogger
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        WriteIndented = false,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
+    };
+
     private readonly List<AuditLog> _pending = [];
 
     public void TrackCreate<T>(T entity) where T : Entity
@@ -28,7 +35,7 @@ public sealed class AuditLogger : IAuditLogger
             tableName: typeof(T).Name,
             action: "Updated",
             entityId: entity.Id.ToString(),
-            oldValues: JsonSerializer.Serialize(oldValues),
+            oldValues: JsonSerializer.Serialize(oldValues, SerializerOptions),
             newValues: SerializeEntity(entity),
             userId: null,
             tenantId: null));
@@ -51,5 +58,5 @@ public sealed class AuditLogger : IAuditLogger
     public void Clear() => _pending.Clear();
 
     private static string SerializeEntity<T>(T entity) =>
-        JsonSerializer.Serialize(entity, new JsonSerializerOptions { WriteIndented = false });
+        JsonSerializer.Serialize(entity, SerializerOptions);
 }

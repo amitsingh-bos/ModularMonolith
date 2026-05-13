@@ -18,6 +18,7 @@ public sealed class AuthService : IAuthService
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly IPermissionRepository _permissionRepository;
+    private readonly ITenantRepository _tenantRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenService _tokenService;
     private readonly RefreshTokenOptions _refreshOptions;
@@ -36,6 +37,7 @@ public sealed class AuthService : IAuthService
         IRefreshTokenRepository refreshTokenRepository,
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
+        ITenantRepository tenantRepository,
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
         IOptions<RefreshTokenOptions> refreshOptions,
@@ -53,6 +55,7 @@ public sealed class AuthService : IAuthService
         _refreshTokenRepository = refreshTokenRepository;
         _roleRepository = roleRepository;
         _permissionRepository = permissionRepository;
+        _tenantRepository = tenantRepository;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
         _refreshOptions = refreshOptions.Value;
@@ -69,6 +72,16 @@ public sealed class AuthService : IAuthService
 
     public async Task<TokenResponseDto> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
     {
+        // Auto-provision the tenant on first registration so it exists for the login pipeline
+        var tenant = await _tenantRepository.GetByIdAsync(request.TenantId, ct);
+        if (tenant is null)
+        {
+            var slug = request.TenantId.ToString();
+            tenant = Tenant.Create(slug, slug, request.TenantId);
+            await _tenantRepository.AddAsync(tenant, ct);
+            await _tenantRepository.SaveChangesAsync(ct);
+        }
+
         if (await _userRepository.ExistsByEmailAsync(request.Email, request.TenantId, ct))
             throw new UserAlreadyExistsException(request.Email);
 

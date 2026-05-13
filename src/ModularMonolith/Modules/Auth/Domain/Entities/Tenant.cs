@@ -11,9 +11,9 @@ public sealed class Tenant : Entity
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private init; }
 
-    public static Tenant Create(string name, string slug) => new()
+    public static Tenant Create(string name, string slug, Guid? id = null) => new()
     {
-        Id = Guid.NewGuid(),
+        Id = id ?? Guid.NewGuid(),
         Name = name,
         Slug = slug.ToLowerInvariant(),
         IsActive = true,
