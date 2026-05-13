@@ -1,9 +1,9 @@
 using Asp.Versioning;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using ModularMonolith.BuildingBlocks.Application.Abstractions;
 using ModularMonolith.BuildingBlocks.Application.Common;
+using ModularMonolith.BuildingBlocks.Infrastructure.Authorization;
 using ModularMonolith.Modules.Catalog.Application.DTOs;
 using ModularMonolith.Modules.Catalog.Application.Services;
 
@@ -13,7 +13,6 @@ namespace ModularMonolith.Modules.Catalog.Presentation.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/categories")]
-[Authorize]
 [Produces("application/json")]
 [EnableRateLimiting("api")]
 public sealed class CategoriesController : ControllerBase
@@ -31,10 +30,13 @@ public sealed class CategoriesController : ControllerBase
     /// <param name="id">Category GUID.</param>
     /// <response code="200">Category found.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>catalog.categories.read</c> permission.</response>
     /// <response code="404">Category not found.</response>
     [HttpGet("{id:guid}")]
+    [RequirePermission(Permissions.Catalog.CategoriesRead)]
     [ProducesResponseType(typeof(ApiResponse<CategoryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
@@ -45,9 +47,12 @@ public sealed class CategoriesController : ControllerBase
     /// <summary>List all categories for the caller's tenant.</summary>
     /// <response code="200">Category list.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>catalog.categories.read</c> permission.</response>
     [HttpGet]
+    [RequirePermission(Permissions.Catalog.CategoriesRead)]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<CategoryDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetAll(CancellationToken ct)
     {
         var tenantId = _currentUser.TenantId
@@ -61,11 +66,14 @@ public sealed class CategoriesController : ControllerBase
     /// <response code="201">Category created.</response>
     /// <response code="400">Validation error.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>catalog.categories.write</c> permission.</response>
     /// <response code="409">A category with that slug already exists in the tenant.</response>
     [HttpPost]
+    [RequirePermission(Permissions.Catalog.CategoriesWrite)]
     [ProducesResponseType(typeof(ApiResponse<CategoryDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request, CancellationToken ct)
     {
@@ -78,11 +86,14 @@ public sealed class CategoriesController : ControllerBase
     /// <response code="200">Category updated.</response>
     /// <response code="400">Validation error.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>catalog.categories.write</c> permission.</response>
     /// <response code="404">Category not found.</response>
     [HttpPut("{id:guid}")]
+    [RequirePermission(Permissions.Catalog.CategoriesWrite)]
     [ProducesResponseType(typeof(ApiResponse<CategoryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCategoryRequest request, CancellationToken ct)
     {
@@ -94,10 +105,13 @@ public sealed class CategoriesController : ControllerBase
     /// <param name="id">Category GUID.</param>
     /// <response code="200">Category deleted.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>catalog.categories.write</c> permission.</response>
     /// <response code="404">Category not found.</response>
     [HttpDelete("{id:guid}")]
+    [RequirePermission(Permissions.Catalog.CategoriesWrite)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {

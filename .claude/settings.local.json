@@ -24,7 +24,11 @@
       "PowerShell(netstat *)",
       "Bash(dotnet list *)",
       "Bash(docker compose *)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\ModularMonolith\\\\src\\\\ModularMonolith\\\\Modules\\\\Catalog\" -Recurse -Force | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"D:\\\\ModularMonolith\\\\src\\\\ModularMonolith\\\\\", \"\"\\) } | Sort-Object)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\ModularMonolith\\\\src\\\\ModularMonolith\" | Where-Object { $_.PSIsContainer } | Select-Object Name)",
+      "PowerShell(Get-ChildItem \"D:\\\\ModularMonolith\\\\src\\\\ModularMonolith\\\\Modules\\\\Catalog\" -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object FullName)",
+      "Bash(xargs grep -l \"RaiseDomainEvent\\\\|ClearDomainEvents\")"
     ]
   }
 }

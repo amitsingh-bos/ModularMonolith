@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using ModularMonolith.BuildingBlocks.Application.Abstractions;
 using ModularMonolith.BuildingBlocks.Infrastructure.Authentication;
+using ModularMonolith.BuildingBlocks.Infrastructure.Events;
 using ModularMonolith.BuildingBlocks.Infrastructure.Filters;
 using ModularMonolith.BuildingBlocks.Infrastructure.Middleware;
 using ModularMonolith.BuildingBlocks.Infrastructure.RateLimiting;
@@ -8,6 +10,10 @@ using ModularMonolith.Modules.Auth;
 using ModularMonolith.Modules.Auth.Infrastructure.Persistence;
 using ModularMonolith.Modules.Catalog;
 using ModularMonolith.Modules.Catalog.Infrastructure.Persistence;
+using ModularMonolith.Modules.Orders;
+using ModularMonolith.Modules.Orders.Infrastructure.Persistence;
+using ModularMonolith.Modules.Payments;
+using ModularMonolith.Modules.Payments.Infrastructure.Persistence;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -24,6 +30,14 @@ try
 
     builder.Services.AddAuthModule(builder.Configuration);
     builder.Services.AddCatalogModule(builder.Configuration);
+    builder.Services.AddOrdersModule(builder.Configuration);
+    builder.Services.AddPaymentsModule(builder.Configuration);
+
+    // Custom domain event pipeline — no third-party bus required.
+    // DomainEventDispatcher resolves IDomainEventHandler<T> from DI at runtime.
+    // AddDomainEventHandlers scans the assembly and registers every handler as Scoped.
+    builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+    builder.Services.AddDomainEventHandlers(typeof(Program).Assembly);
 
     builder.Services.AddJwtAuthentication(builder.Configuration);
     builder.Services.AddApiRateLimiting();
@@ -47,11 +61,14 @@ try
 
     var app = builder.Build();
 
-    // Apply pending migrations at startup (safe to run multiple times)
+    // Apply pending migrations and seed reference data at startup (idempotent)
     using (var scope = app.Services.CreateScope())
     {
         await scope.ServiceProvider.GetRequiredService<AuthDbContext>().Database.MigrateAsync();
         await scope.ServiceProvider.GetRequiredService<CatalogDbContext>().Database.MigrateAsync();
+        await scope.ServiceProvider.GetRequiredService<OrdersDbContext>().Database.MigrateAsync();
+        await scope.ServiceProvider.GetRequiredService<PaymentsDbContext>().Database.MigrateAsync();
+        await scope.ServiceProvider.GetRequiredService<DatabaseSeeder>().SeedAsync();
     }
 
     app.UseSerilogRequestLogging();

@@ -1,9 +1,9 @@
 using Asp.Versioning;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using ModularMonolith.BuildingBlocks.Application.Abstractions;
 using ModularMonolith.BuildingBlocks.Application.Common;
+using ModularMonolith.BuildingBlocks.Infrastructure.Authorization;
 using ModularMonolith.Modules.Auth.Application.DTOs;
 using ModularMonolith.Modules.Auth.Application.Services;
 
@@ -13,7 +13,6 @@ namespace ModularMonolith.Modules.Auth.Presentation.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/users")]
-[Authorize]
 [Produces("application/json")]
 [EnableRateLimiting("api")]
 public sealed class UsersController : ControllerBase
@@ -31,10 +30,13 @@ public sealed class UsersController : ControllerBase
     /// <param name="id">User GUID.</param>
     /// <response code="200">User found.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>auth.users.read</c> permission.</response>
     /// <response code="404">User not found.</response>
     [HttpGet("{id:guid}")]
+    [RequirePermission(Permissions.Auth.UsersRead)]
     [ProducesResponseType(typeof(ApiResponse<UserDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
@@ -45,9 +47,12 @@ public sealed class UsersController : ControllerBase
     /// <summary>List users for the caller's tenant with optional search and paging.</summary>
     /// <response code="200">Paged user list.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>auth.users.read</c> permission.</response>
     [HttpGet]
+    [RequirePermission(Permissions.Auth.UsersRead)]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<UserDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetUsers([FromQuery] GetUsersRequest request, CancellationToken ct)
     {
         var tenantId = _currentUser.TenantId
@@ -62,11 +67,14 @@ public sealed class UsersController : ControllerBase
     /// <response code="200">Role assigned.</response>
     /// <response code="400">ID mismatch or validation error.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>auth.users.write</c> permission.</response>
     /// <response code="404">User or role not found.</response>
     [HttpPost("{id:guid}/roles")]
+    [RequirePermission(Permissions.Auth.UsersWrite)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AssignRole(Guid id, [FromBody] AssignRoleRequest request, CancellationToken ct)
     {

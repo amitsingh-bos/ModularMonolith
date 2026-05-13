@@ -38,6 +38,9 @@ public sealed class UserRepository : RepositoryBase<User>, IUserRepository, IAud
         _context.Users.AnyAsync(
             u => u.Email.Value == email.ToLowerInvariant() && u.TenantId == tenantId, ct);
 
+    public Task<int> CountByTenantAsync(Guid tenantId, CancellationToken ct) =>
+        _context.Users.CountAsync(u => u.TenantId == tenantId, ct);
+
     public async Task AddAsync(User user, CancellationToken ct) =>
         await AddEntityAsync(user, ct);
 

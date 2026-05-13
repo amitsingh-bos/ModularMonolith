@@ -1,9 +1,9 @@
 using Asp.Versioning;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using ModularMonolith.BuildingBlocks.Application.Abstractions;
 using ModularMonolith.BuildingBlocks.Application.Common;
+using ModularMonolith.BuildingBlocks.Infrastructure.Authorization;
 using ModularMonolith.Modules.Catalog.Application.DTOs;
 using ModularMonolith.Modules.Catalog.Application.Services;
 
@@ -13,7 +13,6 @@ namespace ModularMonolith.Modules.Catalog.Presentation.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/products")]
-[Authorize]
 [Produces("application/json")]
 [EnableRateLimiting("api")]
 public sealed class ProductsController : ControllerBase
@@ -31,10 +30,13 @@ public sealed class ProductsController : ControllerBase
     /// <param name="id">Product GUID.</param>
     /// <response code="200">Product found.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>catalog.products.read</c> permission.</response>
     /// <response code="404">Product not found.</response>
     [HttpGet("{id:guid}")]
+    [RequirePermission(Permissions.Catalog.ProductsRead)]
     [ProducesResponseType(typeof(ApiResponse<ProductDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
@@ -45,9 +47,12 @@ public sealed class ProductsController : ControllerBase
     /// <summary>List products for the caller's tenant with optional search and paging.</summary>
     /// <response code="200">Paged product list.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>catalog.products.read</c> permission.</response>
     [HttpGet]
+    [RequirePermission(Permissions.Catalog.ProductsRead)]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<ProductDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetProducts([FromQuery] GetProductsRequest request, CancellationToken ct)
     {
         var tenantId = _currentUser.TenantId
@@ -61,11 +66,14 @@ public sealed class ProductsController : ControllerBase
     /// <response code="201">Product created.</response>
     /// <response code="400">Validation error.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>catalog.products.write</c> permission.</response>
     /// <response code="409">A product with that SKU already exists in the tenant.</response>
     [HttpPost]
+    [RequirePermission(Permissions.Catalog.ProductsWrite)]
     [ProducesResponseType(typeof(ApiResponse<ProductDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Create([FromBody] CreateProductRequest request, CancellationToken ct)
     {
@@ -78,11 +86,14 @@ public sealed class ProductsController : ControllerBase
     /// <response code="200">Product updated.</response>
     /// <response code="400">Validation error.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>catalog.products.write</c> permission.</response>
     /// <response code="404">Product not found.</response>
     [HttpPut("{id:guid}")]
+    [RequirePermission(Permissions.Catalog.ProductsWrite)]
     [ProducesResponseType(typeof(ApiResponse<ProductDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest request, CancellationToken ct)
     {
@@ -94,10 +105,13 @@ public sealed class ProductsController : ControllerBase
     /// <param name="id">Product GUID.</param>
     /// <response code="200">Product deleted.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>catalog.products.write</c> permission.</response>
     /// <response code="404">Product not found.</response>
     [HttpDelete("{id:guid}")]
+    [RequirePermission(Permissions.Catalog.ProductsWrite)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
@@ -110,11 +124,14 @@ public sealed class ProductsController : ControllerBase
     /// <response code="200">Stock adjusted.</response>
     /// <response code="400">Delta would push stock below zero.</response>
     /// <response code="401">Not authenticated.</response>
+    /// <response code="403">Requires <c>catalog.products.write</c> permission.</response>
     /// <response code="404">Product not found.</response>
     [HttpPatch("{id:guid}/stock")]
+    [RequirePermission(Permissions.Catalog.ProductsWrite)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AdjustStock(Guid id, [FromBody] AdjustStockRequest request, CancellationToken ct)
     {
