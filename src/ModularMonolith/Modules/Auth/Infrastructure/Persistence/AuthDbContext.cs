@@ -12,8 +12,9 @@ public sealed class AuthDbContext : BaseDbContext
         DbContextOptions<AuthDbContext> options,
         ITenantContext tenantContext,
         IAuditLogger auditLogger,
-        ICurrentUser currentUser)
-        : base(options, tenantContext, auditLogger, currentUser) { }
+        ICurrentUser currentUser,
+        IDomainEventDispatcher dispatcher)
+        : base(options, tenantContext, auditLogger, currentUser, dispatcher) { }
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Role> Roles => Set<Role>();

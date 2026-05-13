@@ -113,6 +113,16 @@ public sealed class OrderService : IOrderService
         return MapToDto(order);
     }
 
+    public async Task MarkRefundedAsync(Guid orderId, CancellationToken ct = default)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId, ct)
+            ?? throw new OrderNotFoundException(orderId);
+
+        order.MarkRefunded();
+        _orderRepository.Update(order);
+        await _orderRepository.SaveChangesAsync(ct);
+    }
+
     private static OrderDto MapToDto(Order o) => new(
         o.Id,
         o.TenantId,

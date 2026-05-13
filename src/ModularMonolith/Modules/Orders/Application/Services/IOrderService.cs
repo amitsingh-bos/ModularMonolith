@@ -12,4 +12,5 @@ public interface IOrderService
     Task<OrderDto> CancelAsync(Guid orderId, CancelOrderRequest request, CancellationToken ct = default);
     Task<OrderDto> ShipAsync(Guid orderId, CancellationToken ct = default);
     Task<OrderDto> DeliverAsync(Guid orderId, CancellationToken ct = default);
+    Task MarkRefundedAsync(Guid orderId, CancellationToken ct = default);
 }

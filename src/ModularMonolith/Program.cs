@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using ModularMonolith.BuildingBlocks.Application.Abstractions;
 using ModularMonolith.BuildingBlocks.Infrastructure.Authentication;
+using ModularMonolith.BuildingBlocks.Infrastructure.Events;
 using ModularMonolith.BuildingBlocks.Infrastructure.Filters;
 using ModularMonolith.BuildingBlocks.Infrastructure.Middleware;
 using ModularMonolith.BuildingBlocks.Infrastructure.RateLimiting;
@@ -30,6 +32,12 @@ try
     builder.Services.AddCatalogModule(builder.Configuration);
     builder.Services.AddOrdersModule(builder.Configuration);
     builder.Services.AddPaymentsModule(builder.Configuration);
+
+    // Custom domain event pipeline — no third-party bus required.
+    // DomainEventDispatcher resolves IDomainEventHandler<T> from DI at runtime.
+    // AddDomainEventHandlers scans the assembly and registers every handler as Scoped.
+    builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+    builder.Services.AddDomainEventHandlers(typeof(Program).Assembly);
 
     builder.Services.AddJwtAuthentication(builder.Configuration);
     builder.Services.AddApiRateLimiting();

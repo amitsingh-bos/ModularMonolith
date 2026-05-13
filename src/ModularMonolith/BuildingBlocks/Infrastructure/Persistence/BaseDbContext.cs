@@ -11,16 +11,19 @@ public abstract class BaseDbContext : DbContext
     private readonly ITenantContext _tenantContext;
     private readonly IAuditLogger _auditLogger;
     private readonly ICurrentUser _currentUser;
+    private readonly IDomainEventDispatcher _dispatcher;
 
     protected BaseDbContext(
         DbContextOptions options,
         ITenantContext tenantContext,
         IAuditLogger auditLogger,
-        ICurrentUser currentUser) : base(options)
+        ICurrentUser currentUser,
+        IDomainEventDispatcher dispatcher) : base(options)
     {
         _tenantContext = tenantContext;
         _auditLogger = auditLogger;
         _currentUser = currentUser;
+        _dispatcher = dispatcher;
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -28,8 +31,13 @@ public abstract class BaseDbContext : DbContext
         SetAuditableFields();
         SetTenantId();
         FlushAuditEntries();
+
         var result = await base.SaveChangesAsync(cancellationToken);
-        DispatchDomainEvents();
+
+        // Dispatch AFTER the DB transaction commits — handler failures never
+        // roll back already-persisted aggregate state.
+        await DispatchDomainEventsAsync(cancellationToken);
+
         _auditLogger.Clear();
         return result;
     }
@@ -92,15 +100,24 @@ public abstract class BaseDbContext : DbContext
         }
     }
 
-    private void DispatchDomainEvents()
+    private async Task DispatchDomainEventsAsync(CancellationToken ct)
     {
-        var aggregates = ChangeTracker.Entries()
-            .Select(e => e.Entity)
-            .OfType<Domain.Primitives.AggregateRoot>()
-            .Where(a => a.DomainEvents.Count > 0)
+        var domainEvents = ChangeTracker
+            .Entries<Domain.Primitives.AggregateRoot>()
+            .Where(e => e.Entity.DomainEvents.Count > 0)
+            .SelectMany(e => e.Entity.DomainEvents)
             .ToList();
 
-        foreach (var aggregate in aggregates)
+        // Clear before dispatching — prevents re-dispatch if a handler triggers
+        // another SaveChangesAsync on the same DbContext instance.
+        foreach (var aggregate in ChangeTracker
+            .Entries<Domain.Primitives.AggregateRoot>()
+            .Select(e => e.Entity))
+        {
             aggregate.ClearDomainEvents();
+        }
+
+        foreach (var domainEvent in domainEvents)
+            await _dispatcher.DispatchAsync(domainEvent, ct);
     }
 }

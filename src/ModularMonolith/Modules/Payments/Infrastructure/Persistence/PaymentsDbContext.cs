@@ -12,8 +12,9 @@ public sealed class PaymentsDbContext : BaseDbContext
         DbContextOptions<PaymentsDbContext> options,
         ITenantContext tenantContext,
         IAuditLogger auditLogger,
-        ICurrentUser currentUser)
-        : base(options, tenantContext, auditLogger, currentUser) { }
+        ICurrentUser currentUser,
+        IDomainEventDispatcher dispatcher)
+        : base(options, tenantContext, auditLogger, currentUser, dispatcher) { }
 
     public DbSet<Payment> Payments => Set<Payment>();
 

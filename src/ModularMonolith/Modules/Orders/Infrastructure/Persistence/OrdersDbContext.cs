@@ -12,8 +12,9 @@ public sealed class OrdersDbContext : BaseDbContext
         DbContextOptions<OrdersDbContext> options,
         ITenantContext tenantContext,
         IAuditLogger auditLogger,
-        ICurrentUser currentUser)
-        : base(options, tenantContext, auditLogger, currentUser) { }
+        ICurrentUser currentUser,
+        IDomainEventDispatcher dispatcher)
+        : base(options, tenantContext, auditLogger, currentUser, dispatcher) { }
 
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();

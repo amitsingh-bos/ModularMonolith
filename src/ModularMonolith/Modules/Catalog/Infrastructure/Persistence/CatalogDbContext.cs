@@ -12,8 +12,9 @@ public sealed class CatalogDbContext : BaseDbContext
         DbContextOptions<CatalogDbContext> options,
         ITenantContext tenantContext,
         IAuditLogger auditLogger,
-        ICurrentUser currentUser)
-        : base(options, tenantContext, auditLogger, currentUser) { }
+        ICurrentUser currentUser,
+        IDomainEventDispatcher dispatcher)
+        : base(options, tenantContext, auditLogger, currentUser, dispatcher) { }
 
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();
