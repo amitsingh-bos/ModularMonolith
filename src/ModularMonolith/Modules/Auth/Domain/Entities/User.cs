@@ -1,6 +1,7 @@
 using ModularMonolith.BuildingBlocks.Domain.Abstractions;
 using ModularMonolith.BuildingBlocks.Domain.Exceptions;
 using ModularMonolith.BuildingBlocks.Domain.Primitives;
+using ModularMonolith.Modules.Auth.Domain.Enums;
 using ModularMonolith.Modules.Auth.Domain.Events;
 using ModularMonolith.Modules.Auth.Domain.Exceptions;
 using ModularMonolith.Modules.Auth.Domain.ValueObjects;
@@ -21,6 +22,11 @@ public sealed class User : AggregateRoot, IAuditableEntity, ISoftDeletable
     public bool IsActive { get; private set; }
     public bool IsEmailVerified { get; private set; }
     public DateTime? LastLoginAt { get; private set; }
+
+    public bool TwoFactorEnabled { get; private set; }
+    public TwoFactorMethod? TwoFactorMethod { get; private set; }
+    public string? TwoFactorSecretKey { get; private set; }
+    public string? PhoneNumber { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
@@ -108,5 +114,28 @@ public sealed class User : AggregateRoot, IAuditableEntity, ISoftDeletable
         PasswordHash = newPasswordHash;
         UpdatedAt = DateTime.UtcNow;
         UpdatedBy = updatedBy;
+    }
+
+    public void SetupTwoFactor(TwoFactorMethod method, string? secretKey = null, string? phoneNumber = null)
+    {
+        TwoFactorMethod = method;
+        TwoFactorSecretKey = secretKey;
+        PhoneNumber = phoneNumber;
+        TwoFactorEnabled = false; // enabled only after confirmation
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void EnableTwoFactor()
+    {
+        TwoFactorEnabled = true;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void DisableTwoFactor()
+    {
+        TwoFactorEnabled = false;
+        TwoFactorMethod = null;
+        TwoFactorSecretKey = null;
+        UpdatedAt = DateTime.UtcNow;
     }
 }

@@ -12,6 +12,21 @@ export interface TokenResponse {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
+  requiresTwoFactor?: boolean;
+  twoFactorToken?: string;
+  twoFactorMethod?: string;
+}
+
+export interface Setup2FaResponse {
+  method: string;
+  qrCodeUri?: string;
+  secretKey?: string;
+  message?: string;
+}
+
+export interface TwoFactorStatus {
+  enabled: boolean;
+  method?: string;
 }
 
 export interface LoginRequest {
@@ -221,13 +236,7 @@ export interface RefundPaymentRequest {
   reason?: string;
 }
 
-// ─── API wrapper ──────────────────────────────────────────────────────────────
-export interface ApiResponse<T> {
-  data: T;
-  success: boolean;
-  message?: string;
-}
-
+// ─── Auth User ────────────────────────────────────────────────────────────────
 export interface AuthUser {
   id: string;
   email: string;

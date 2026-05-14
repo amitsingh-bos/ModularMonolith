@@ -4,6 +4,7 @@ using ModularMonolith.BuildingBlocks.Infrastructure.Options;
 using ModularMonolith.Modules.Auth.Application.Abstractions;
 using ModularMonolith.Modules.Auth.Application.DTOs;
 using ModularMonolith.Modules.Auth.Application.Pipelines.Login;
+using ModularMonolith.Modules.Auth.Domain.Exceptions;
 using ModularMonolith.Modules.Auth.Application.Pipelines.TokenRefresh;
 using ModularMonolith.Modules.Auth.Application.Services;
 using ModularMonolith.Modules.Auth.Domain.Entities;
@@ -26,6 +27,7 @@ public sealed class AuthService : IAuthService
     private readonly CheckAccountStatusHandler _checkAccountStatus;
     private readonly CheckTenantStatusHandler _checkTenantStatus;
     private readonly RecordLoginAuditHandler _recordLoginAudit;
+    private readonly Check2FaHandler _check2Fa;
     private readonly GenerateTokensHandler _generateTokens;
     private readonly LoadRefreshTokenHandler _loadRefreshToken;
     private readonly CheckRevocationHandler _checkRevocation;
@@ -45,6 +47,7 @@ public sealed class AuthService : IAuthService
         CheckAccountStatusHandler checkAccountStatus,
         CheckTenantStatusHandler checkTenantStatus,
         RecordLoginAuditHandler recordLoginAudit,
+        Check2FaHandler check2Fa,
         GenerateTokensHandler generateTokens,
         LoadRefreshTokenHandler loadRefreshToken,
         CheckRevocationHandler checkRevocation,
@@ -63,6 +66,7 @@ public sealed class AuthService : IAuthService
         _checkAccountStatus = checkAccountStatus;
         _checkTenantStatus = checkTenantStatus;
         _recordLoginAudit = recordLoginAudit;
+        _check2Fa = check2Fa;
         _generateTokens = generateTokens;
         _loadRefreshToken = loadRefreshToken;
         _checkRevocation = checkRevocation;
@@ -141,6 +145,7 @@ public sealed class AuthService : IAuthService
             .SetNext(_checkAccountStatus)
             .SetNext(_checkTenantStatus)
             .SetNext(_recordLoginAudit)
+            .SetNext(_check2Fa)
             .SetNext(_generateTokens);
 
         await _validateCredentials.HandleAsync(context, ct);

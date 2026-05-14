@@ -3,13 +3,20 @@ import type { AuthUser, LoginRequest, RegisterRequest } from '../types';
 import { authApi } from '../api/auth';
 import { getErrorMessage } from '../api/client';
 
+export interface LoginResult {
+  requiresTwoFactor?: boolean;
+  twoFactorToken?: string;
+  twoFactorMethod?: string;
+}
+
 interface AuthContextValue {
   user: AuthUser | null;
   tenantId: string;
   isAuthenticated: boolean;
-  login: (data: LoginRequest) => Promise<void>;
+  login: (data: LoginRequest) => Promise<LoginResult>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
+  verifyTwoFactor: (twoFactorToken: string, code: string, tenantId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -63,15 +70,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (token) setUser(claimsToUser(token));
   }, []);
 
-  const login = useCallback(async (data: LoginRequest) => {
+  const login = useCallback(async (data: LoginRequest): Promise<LoginResult> => {
     try {
       const resp = await authApi.login(data);
-      console.log('resp', resp);
-      localStorage.setItem('accessToken', resp.data.accessToken);
-      localStorage.setItem('refreshToken', resp.data.refreshToken);
+      const tokenData = resp.data;
+
+      if (tokenData.requiresTwoFactor) {
+        return {
+          requiresTwoFactor: true,
+          twoFactorToken: tokenData.twoFactorToken,
+          twoFactorMethod: tokenData.twoFactorMethod,
+        };
+      }
+
+      localStorage.setItem('accessToken', tokenData.accessToken);
+      localStorage.setItem('refreshToken', tokenData.refreshToken);
       localStorage.setItem('tenantId', data.tenantId);
       setTenantId(data.tenantId);
-      setUser(claimsToUser(resp.data.accessToken));
+      setUser(claimsToUser(tokenData.accessToken));
+      return {};
     } catch (err) {
       throw new Error(getErrorMessage(err));
     }
@@ -90,6 +107,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const verifyTwoFactor = useCallback(async (twoFactorToken: string, code: string, tid: string) => {
+    try {
+      const resp = await authApi.verifyLogin2fa({ twoFactorToken, code });
+      const tokenData = resp.data;
+      localStorage.setItem('accessToken', tokenData.accessToken);
+      localStorage.setItem('refreshToken', tokenData.refreshToken);
+      localStorage.setItem('tenantId', tid);
+      setTenantId(tid);
+      setUser(claimsToUser(tokenData.accessToken));
+    } catch (err) {
+      throw new Error(getErrorMessage(err));
+    }
+  }, []);
+
   const logout = useCallback(() => {
     const refreshToken = localStorage.getItem('refreshToken');
     if (refreshToken) authApi.revoke(refreshToken).catch(() => {});
@@ -101,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, tenantId, isAuthenticated: !!user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, tenantId, isAuthenticated: !!user, login, register, logout, verifyTwoFactor }}>
       {children}
     </AuthContext.Provider>
   );

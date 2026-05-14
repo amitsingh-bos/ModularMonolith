@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ModularMonolith.Modules.Auth.Domain.Entities;
+using ModularMonolith.Modules.Auth.Domain.Enums;
 
 namespace ModularMonolith.Modules.Auth.Infrastructure.Persistence.Configurations;
 
@@ -26,6 +27,10 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.TenantId).IsRequired();
         builder.Property(u => u.IsActive).HasDefaultValue(true);
         builder.Property(u => u.IsDeleted).HasDefaultValue(false);
+        builder.Property(u => u.TwoFactorEnabled).HasDefaultValue(false);
+        builder.Property(u => u.TwoFactorMethod).HasConversion<string>().HasMaxLength(30).IsRequired(false);
+        builder.Property(u => u.TwoFactorSecretKey).HasMaxLength(100).IsRequired(false);
+        builder.Property(u => u.PhoneNumber).HasMaxLength(20).IsRequired(false);
 
         builder.HasIndex(u => new { u.TenantId, u.IsDeleted });
 

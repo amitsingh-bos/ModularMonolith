@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   LayoutDashboard, Package, Tag, ShoppingCart,
-  CreditCard, Users, Shield, LogOut, Menu,
+  CreditCard, Users, Shield, LogOut, Menu, Lock,
 } from 'lucide-react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
@@ -20,8 +20,9 @@ const navItems: NavItem[] = [
   { to: '/categories', icon: Tag,             label: 'Categories', module: 'catalog' },
   { to: '/orders',     icon: ShoppingCart,    label: 'Orders',     module: 'orders' },
   { to: '/payments',   icon: CreditCard,      label: 'Payments',   module: 'payments' },
-  { to: '/users',      icon: Users,           label: 'Users',      module: 'auth' },
-  { to: '/roles',      icon: Shield,          label: 'Roles',      module: 'auth' },
+  { to: '/users',             icon: Users,  label: 'Users',    module: 'auth' },
+  { to: '/roles',             icon: Shield, label: 'Roles',    module: 'auth' },
+  { to: '/settings/security', icon: Lock,   label: 'Security', module: 'auth' },
 ];
 
 const moduleColors: Record<string, string> = {

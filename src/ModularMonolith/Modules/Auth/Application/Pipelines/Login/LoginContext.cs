@@ -16,4 +16,6 @@ public sealed class LoginContext
     public IReadOnlyList<string> Roles { get; set; } = [];
     public IReadOnlyList<string> Permissions { get; set; } = [];
     public TokenResponseDto? Result { get; set; }
+
+    public bool TwoFactorRequired { get; set; }
 }

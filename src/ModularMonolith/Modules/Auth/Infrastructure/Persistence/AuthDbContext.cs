@@ -24,6 +24,7 @@ public sealed class AuthDbContext : BaseDbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<TwoFactorToken> TwoFactorTokens => Set<TwoFactorToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
