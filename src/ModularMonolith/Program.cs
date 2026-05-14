@@ -5,6 +5,7 @@ using ModularMonolith.BuildingBlocks.Infrastructure.Events;
 using ModularMonolith.BuildingBlocks.Infrastructure.Filters;
 using ModularMonolith.BuildingBlocks.Infrastructure.Middleware;
 using ModularMonolith.BuildingBlocks.Infrastructure.RateLimiting;
+using ModularMonolith.BuildingBlocks.Infrastructure.Observability;
 using ModularMonolith.BuildingBlocks.Infrastructure.Swagger;
 using ModularMonolith.Modules.Auth;
 using ModularMonolith.Modules.Auth.Infrastructure.Persistence;
@@ -34,6 +35,7 @@ try
     builder.Services.AddOrdersModule(builder.Configuration);
     builder.Services.AddPaymentsModule(builder.Configuration);
 
+    builder.Services.AddObservability(builder.Configuration);
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddScoped<ICorrelationIdAccessor, CorrelationIdAccessor>();
 
@@ -88,6 +90,7 @@ try
         await scope.ServiceProvider.GetRequiredService<DatabaseSeeder>().SeedAsync();
     }
 
+    app.MapPrometheusScrapingEndpoint("/metrics");
     app.UseMiddleware<CorrelationIdMiddleware>();
     app.UseSerilogRequestLogging();
     app.UseMiddleware<ExceptionHandlingMiddleware>();
