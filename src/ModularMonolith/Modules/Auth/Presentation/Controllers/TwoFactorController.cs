@@ -7,6 +7,7 @@ using ModularMonolith.BuildingBlocks.Application.Common;
 using ModularMonolith.Modules.Auth.Application.DTOs;
 using ModularMonolith.Modules.Auth.Application.Services;
 using ModularMonolith.Modules.Auth.Domain.Enums;
+using ModularMonolith.Modules.Auth.Domain.Exceptions;
 
 namespace ModularMonolith.Modules.Auth.Presentation.Controllers;
 
@@ -50,11 +51,18 @@ public sealed class TwoFactorController : ControllerBase
     [Authorize]
     [EnableRateLimiting("api")]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Confirm([FromBody] Confirm2FaSetupRequest request, CancellationToken ct)
     {
-        await _twoFactorService.ConfirmSetupAsync(_currentUser.UserId!.Value, request.Code, ct);
-        return Ok(ApiResponse.NoContent("Two-factor authentication enabled."));
+        try
+        {
+            await _twoFactorService.ConfirmSetupAsync(_currentUser.UserId!.Value, request.Code, ct);
+            return Ok(ApiResponse.NoContent("Two-factor authentication enabled."));
+        }
+        catch (InvalidTokenException)
+        {
+            return BadRequest(ApiResponse.Fail("Invalid or expired verification code."));
+        }
     }
 
     /// <summary>Disable 2FA. Requires a valid current code to prevent unauthorized disabling.</summary>
@@ -64,11 +72,18 @@ public sealed class TwoFactorController : ControllerBase
     [Authorize]
     [EnableRateLimiting("api")]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Disable([FromBody] Disable2FaRequest request, CancellationToken ct)
     {
-        await _twoFactorService.DisableAsync(_currentUser.UserId!.Value, request.Code, ct);
-        return Ok(ApiResponse.NoContent("Two-factor authentication disabled."));
+        try
+        {
+            await _twoFactorService.DisableAsync(_currentUser.UserId!.Value, request.Code, ct);
+            return Ok(ApiResponse.NoContent("Two-factor authentication disabled."));
+        }
+        catch (InvalidTokenException)
+        {
+            return BadRequest(ApiResponse.Fail("Invalid or expired verification code."));
+        }
     }
 
     /// <summary>Get the current user's 2FA status.</summary>

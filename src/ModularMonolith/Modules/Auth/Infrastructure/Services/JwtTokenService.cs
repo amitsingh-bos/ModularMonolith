@@ -71,7 +71,7 @@ public sealed class JwtTokenService : ITokenService
             issuer: _options.Issuer,
             audience: "2fa-stepup",
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(5),
+            expires: DateTime.UtcNow.AddMinutes(10),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -82,7 +82,12 @@ public sealed class JwtTokenService : ITokenService
         try
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
-            var principal = new JwtSecurityTokenHandler().ValidateToken(token, new TokenValidationParameters
+            // Clear the inbound map so "sub" stays as "sub" instead of being remapped
+            // to ClaimTypes.NameIdentifier by the handler's default mapping table.
+            var handler = new JwtSecurityTokenHandler();
+            handler.InboundClaimTypeMap.Clear();
+
+            var principal = handler.ValidateToken(token, new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = key,
@@ -91,7 +96,7 @@ public sealed class JwtTokenService : ITokenService
                 ValidateAudience = true,
                 ValidAudience = "2fa-stepup",
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
+                ClockSkew = TimeSpan.FromSeconds(30)
             }, out _);
 
             var userId = Guid.Parse(principal.FindFirstValue(JwtRegisteredClaimNames.Sub)!);

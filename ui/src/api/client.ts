@@ -16,7 +16,10 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response?.status === 401) {
+    // Only force-logout when we have a token that the server rejected (expired/revoked JWT).
+    // Skip for unauthenticated flows (2FA verify during login) and for bad-code errors
+    // on authenticated 2FA endpoints (which now return 400, not 401).
+    if (error.response?.status === 401 && localStorage.getItem('accessToken')) {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('tenantId');

@@ -4,7 +4,6 @@ using ModularMonolith.BuildingBlocks.Infrastructure.Options;
 using ModularMonolith.Modules.Auth.Application.Abstractions;
 using ModularMonolith.Modules.Auth.Application.DTOs;
 using ModularMonolith.Modules.Auth.Application.Pipelines.Login;
-using ModularMonolith.Modules.Auth.Domain.Exceptions;
 using ModularMonolith.Modules.Auth.Application.Pipelines.TokenRefresh;
 using ModularMonolith.Modules.Auth.Application.Services;
 using ModularMonolith.Modules.Auth.Domain.Entities;
