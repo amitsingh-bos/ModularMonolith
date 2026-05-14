@@ -31,6 +31,8 @@ public sealed class ExceptionHandlingMiddleware
 
     private static async Task HandleExceptionAsync(HttpContext context, Exception ex)
     {
+        var correlationId = context.Items[CorrelationIdMiddleware.ItemKey] as string;
+
         // specific domain exceptions must come before the base DomainException catch-all
         var (statusCode, message) = ex switch
         {
@@ -47,6 +49,6 @@ public sealed class ExceptionHandlingMiddleware
 
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
-        await context.Response.WriteAsJsonAsync(ApiResponse.Fail(message, statusCode));
+        await context.Response.WriteAsJsonAsync(ApiResponse.Fail(message, statusCode, correlationId));
     }
 }

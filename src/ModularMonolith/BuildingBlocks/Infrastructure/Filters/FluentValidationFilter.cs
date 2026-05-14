@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using ModularMonolith.BuildingBlocks.Application.Common;
+using ModularMonolith.BuildingBlocks.Infrastructure.Middleware;
 
 namespace ModularMonolith.BuildingBlocks.Infrastructure.Filters;
 
@@ -25,8 +26,9 @@ public sealed class FluentValidationFilter : IAsyncActionFilter
 
                 if (!result.IsValid)
                 {
+                    var correlationId = context.HttpContext.Items[CorrelationIdMiddleware.ItemKey] as string;
                     var errors = result.Errors.Select(e => e.ErrorMessage);
-                    context.Result = new BadRequestObjectResult(ApiResponse.ValidationError(errors));
+                    context.Result = new BadRequestObjectResult(ApiResponse.ValidationError(errors, correlationId));
                     return;
                 }
             }

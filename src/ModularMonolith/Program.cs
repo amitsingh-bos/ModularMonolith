@@ -26,6 +26,7 @@ try
 
     builder.Host.UseSerilog((ctx, lc) => lc
         .ReadFrom.Configuration(ctx.Configuration)
+        .Enrich.FromLogContext()
         .WriteTo.Console());
 
     builder.Services.AddAuthModule(builder.Configuration);
@@ -33,18 +34,23 @@ try
     builder.Services.AddOrdersModule(builder.Configuration);
     builder.Services.AddPaymentsModule(builder.Configuration);
 
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddScoped<ICorrelationIdAccessor, CorrelationIdAccessor>();
+
     // Custom domain event pipeline — no third-party bus required.
     // DomainEventDispatcher resolves IDomainEventHandler<T> from DI at runtime.
     // AddDomainEventHandlers scans the assembly and registers every handler as Scoped.
     builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
     builder.Services.AddDomainEventHandlers(typeof(Program).Assembly);
 
+    var allowedOrigins = builder.Configuration
+        .GetSection("Cors:AllowedOrigins")
+        .Get<string[]>() ?? [];
+
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("ReactApp", policy =>
-            policy.WithOrigins(
-                "http://localhost:3000",
-                "http://localhost:3002")
+            policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials());
@@ -82,6 +88,7 @@ try
         await scope.ServiceProvider.GetRequiredService<DatabaseSeeder>().SeedAsync();
     }
 
+    app.UseMiddleware<CorrelationIdMiddleware>();
     app.UseSerilogRequestLogging();
     app.UseMiddleware<ExceptionHandlingMiddleware>();
     app.UseApiSwagger();
