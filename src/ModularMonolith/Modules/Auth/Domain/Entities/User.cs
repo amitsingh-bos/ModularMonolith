@@ -23,6 +23,9 @@ public sealed class User : AggregateRoot, IAuditableEntity, ISoftDeletable
     public bool IsEmailVerified { get; private set; }
     public DateTime? LastLoginAt { get; private set; }
 
+    public int FailedLoginAttempts { get; private set; }
+    public DateTime? LockoutEnd { get; private set; }
+
     public bool TwoFactorEnabled { get; private set; }
     public TwoFactorMethod? TwoFactorMethod { get; private set; }
     public string? TwoFactorSecretKey { get; private set; }
@@ -63,11 +66,23 @@ public sealed class User : AggregateRoot, IAuditableEntity, ISoftDeletable
         return user;
     }
 
+    public bool IsLockedOut() => LockoutEnd.HasValue && LockoutEnd.Value > DateTime.UtcNow;
+
     public void RecordLogin()
     {
         LastLoginAt = DateTime.UtcNow;
+        FailedLoginAttempts = 0;
+        LockoutEnd = null;
         UpdatedAt = DateTime.UtcNow;
         RaiseDomainEvent(new UserLoggedInDomainEvent(Id, TenantId));
+    }
+
+    public void RecordFailedLogin(int maxAttempts, TimeSpan lockoutDuration)
+    {
+        FailedLoginAttempts++;
+        if (FailedLoginAttempts >= maxAttempts)
+            LockoutEnd = DateTime.UtcNow.Add(lockoutDuration);
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void AssignRole(Guid roleId)

@@ -33,7 +33,8 @@
       "Bash(npm install *)",
       "Bash(npx tsc *)",
       "Bash(npm run *)",
-      "Bash(docker-compose up *)"
+      "Bash(docker-compose up *)",
+      "Bash(PGPASSWORD=\"Si9369787348\" /c/Program Files/PostgreSQL/17/bin/psql *)"
     ]
   }
 }

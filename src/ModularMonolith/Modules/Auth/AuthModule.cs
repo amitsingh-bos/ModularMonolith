@@ -29,6 +29,10 @@ public static class AuthModule
             .BindConfiguration(RefreshTokenOptions.SectionName)
             .ValidateDataAnnotations();
 
+        services.AddOptionsWithValidateOnStart<AccountLockoutOptions>()
+            .BindConfiguration(AccountLockoutOptions.SectionName)
+            .ValidateDataAnnotations();
+
         services.AddSingleton<SoftDeleteInterceptor>();
         services.AddDbContext<AuthDbContext>((sp, options) =>
             options.UseNpgsql(configuration.GetConnectionString("Default"))
@@ -57,6 +61,7 @@ public static class AuthModule
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<ITwoFactorTokenRepository, TwoFactorTokenRepository>();
 
+        services.AddScoped<CheckAccountLockoutHandler>();
         services.AddScoped<ValidateCredentialsHandler>();
         services.AddScoped<CheckAccountStatusHandler>();
         services.AddScoped<CheckTenantStatusHandler>();

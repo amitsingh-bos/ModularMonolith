@@ -22,6 +22,7 @@ public sealed class AuthService : IAuthService
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenService _tokenService;
     private readonly RefreshTokenOptions _refreshOptions;
+    private readonly CheckAccountLockoutHandler _checkAccountLockout;
     private readonly ValidateCredentialsHandler _validateCredentials;
     private readonly CheckAccountStatusHandler _checkAccountStatus;
     private readonly CheckTenantStatusHandler _checkTenantStatus;
@@ -42,6 +43,7 @@ public sealed class AuthService : IAuthService
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
         IOptions<RefreshTokenOptions> refreshOptions,
+        CheckAccountLockoutHandler checkAccountLockout,
         ValidateCredentialsHandler validateCredentials,
         CheckAccountStatusHandler checkAccountStatus,
         CheckTenantStatusHandler checkTenantStatus,
@@ -61,6 +63,7 @@ public sealed class AuthService : IAuthService
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
         _refreshOptions = refreshOptions.Value;
+        _checkAccountLockout = checkAccountLockout;
         _validateCredentials = validateCredentials;
         _checkAccountStatus = checkAccountStatus;
         _checkTenantStatus = checkTenantStatus;
@@ -140,14 +143,15 @@ public sealed class AuthService : IAuthService
             IpAddress = ipAddress
         };
 
-        _validateCredentials
+        _checkAccountLockout
+            .SetNext(_validateCredentials)
             .SetNext(_checkAccountStatus)
             .SetNext(_checkTenantStatus)
             .SetNext(_recordLoginAudit)
             .SetNext(_check2Fa)
             .SetNext(_generateTokens);
 
-        await _validateCredentials.HandleAsync(context, ct);
+        await _checkAccountLockout.HandleAsync(context, ct);
         return context.Result!;
     }
 

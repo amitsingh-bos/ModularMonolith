@@ -39,6 +39,7 @@ public sealed class ExceptionHandlingMiddleware
             ValidationException ve => (400, string.Join("; ", ve.Errors.Select(e => e.ErrorMessage))),
             InvalidCredentialsException ice => (401, ice.Message),
             InvalidTokenException ite => (401, ite.Message),
+            AccountLockedException ale => (423, ale.Message),
             UserAlreadyExistsException uae => (409, uae.Message),
             TenantInactiveException tie => (403, tie.Message),
             DomainException de => (400, de.Message),

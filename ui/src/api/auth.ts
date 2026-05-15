@@ -35,23 +35,23 @@ export const authApi = {
 
   // Users
   getUsers: (params?: { tenantId?: string; page?: number; pageSize?: number }) =>
-    apiClient.get<UserDto[]>('/users', { params }).then(r => r.data),
+    apiClient.get<ApiResponse<UserDto[]>>('/users', { params }).then(r => r.data.data),
 
   getUser: (id: string) =>
-    apiClient.get<UserDto>(`/users/${id}`).then(r => r.data),
+    apiClient.get<ApiResponse<UserDto>>(`/users/${id}`).then(r => r.data.data),
 
   assignRole: (userId: string, data: AssignRoleRequest) =>
     apiClient.post(`/users/${userId}/roles`, data),
 
   // Roles
   getRoles: () =>
-    apiClient.get<RoleDto[]>('/roles').then(r => r.data),
+    apiClient.get<ApiResponse<RoleDto[]>>('/roles').then(r => r.data.data),
 
   getRole: (id: string) =>
-    apiClient.get<RoleDto>(`/roles/${id}`).then(r => r.data),
+    apiClient.get<ApiResponse<RoleDto>>(`/roles/${id}`).then(r => r.data.data),
 
   createRole: (data: CreateRoleRequest) =>
-    apiClient.post<RoleDto>('/roles', data).then(r => r.data),
+    apiClient.post<ApiResponse<RoleDto>>('/roles', data).then(r => r.data.data),
 
   deleteRole: (id: string) =>
     apiClient.delete(`/roles/${id}`),
@@ -64,5 +64,5 @@ export const authApi = {
 
   // Permissions
   getPermissions: () =>
-    apiClient.get<PermissionDto[]>('/permissions').then(r => r.data),
+    apiClient.get<ApiResponse<PermissionDto[]>>('/permissions').then(r => r.data .data),
 };
