@@ -23,6 +23,16 @@ public sealed class TwoFactorTokenRepository : ITwoFactorTokenRepository
             .OrderByDescending(t => t.CreatedAt)
             .FirstOrDefaultAsync(ct);
 
+    public Task<TwoFactorToken?> GetByHashAsync(
+        Guid userId, string codeHash, string purpose, CancellationToken ct = default) =>
+        _context.TwoFactorTokens
+            .Where(t => t.UserId == userId
+                     && t.CodeHash == codeHash
+                     && t.Purpose == purpose
+                     && !t.IsUsed
+                     && t.ExpiresAt > DateTime.UtcNow)
+            .FirstOrDefaultAsync(ct);
+
     public async Task AddAsync(TwoFactorToken token, CancellationToken ct = default) =>
         await _context.TwoFactorTokens.AddAsync(token, ct);
 

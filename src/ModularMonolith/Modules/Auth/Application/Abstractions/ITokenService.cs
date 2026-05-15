@@ -11,4 +11,8 @@ public interface ITokenService
     // Short-lived step-up token issued when 2FA is required after password validation
     string GenerateStepUpToken(Guid userId, string twoFactorMethod);
     (Guid userId, string method)? ValidateStepUpToken(string token);
+
+    // Short-lived step-up token for TOTP-based password reset
+    string GeneratePasswordResetStepUpToken(Guid userId);
+    Guid? ValidatePasswordResetStepUpToken(string token);
 }

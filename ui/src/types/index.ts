@@ -85,6 +85,29 @@ export interface AssignPermissionRequest {
   permissionId: string;
 }
 
+export interface ForgotPasswordRequest {
+  tenantId: string;
+  email: string;
+  method: 'email' | 'totp';
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+  stepUpToken?: string;
+}
+
+export interface ResetPasswordRequest {
+  method: 'email' | 'totp';
+  newPassword: string;
+  // email method
+  tenantId?: string;
+  email?: string;
+  resetToken?: string;
+  // totp method
+  stepUpToken?: string;
+  totpCode?: string;
+}
+
 // ─── Catalog ──────────────────────────────────────────────────────────────────
 export interface CategoryDto {
   id: string;

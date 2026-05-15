@@ -75,6 +75,7 @@ public static class AuthModule
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ITwoFactorService, TwoFactorService>();
+        services.AddScoped<IPasswordResetService, PasswordResetService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IPermissionService, PermissionService>();
