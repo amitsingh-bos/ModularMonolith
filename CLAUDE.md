@@ -667,6 +667,82 @@ Format: `{module}.{resource}.{action}` — all lowercase, dots as separators.
 
 ---
 
+## Optimistic Concurrency Control
+
+Aggregates that can be concurrently modified implement `IVersionedEntity` (from `BuildingBlocks.Domain.Abstractions`).
+
+### Entity
+
+```csharp
+public sealed class Product : AggregateRoot, IAuditableEntity, ISoftDeletable, IVersionedEntity
+{
+    public int Version { get; private set; } = 1;
+    // ...
+}
+```
+
+### EF Configuration
+
+```csharp
+builder.Property(p => p.Version)
+    .HasColumnName("version")
+    .HasColumnType("integer")
+    .HasDefaultValue(1)
+    .IsConcurrencyToken()
+    .IsRequired();
+```
+
+### How it works automatically
+
+`BaseDbContext.SaveChangesAsync()` calls `IncrementVersions()` before every save. For every `IVersionedEntity` in `Modified` state, it increments `Version` by 1. EF generates:
+
+```sql
+UPDATE "Products" SET ..., version = @newVersion
+WHERE id = @id AND version = @originalVersion
+```
+
+If another request updated the row first (changing its version), 0 rows are affected → EF throws `DbUpdateConcurrencyException` → caught by `ExceptionHandlingMiddleware` → **409 Conflict**.
+
+### Client-side OCC (optional, opt-in per service)
+
+When a client sends back the version they read, the repository can enforce it:
+
+```csharp
+// In repository:
+protected virtual void UpdateEntity(TEntity entity, int? expectedVersion = null)
+
+// In service — accept version from request DTO, pass to repository:
+_repository.UpdateEntity(entity, request.Version);
+```
+
+EF sets `OriginalValue["Version"] = expectedVersion` so the WHERE clause uses the client's version, not the DB-loaded one.
+
+### 409 Response shape
+
+```json
+{
+  "statusCode": 409,
+  "success": false,
+  "message": "The record has been modified by another user. Please refresh and try again.",
+  "errors": ["The record has been modified by another user. Please refresh and try again."],
+  "currentValues": {
+    "id": "...",
+    "name": "Updated Name",
+    "version": 4,
+    "updatedAt": "2026-05-15T07:30:00Z"
+  },
+  "correlationId": "..."
+}
+```
+
+`currentValues` are loaded live from the database inside `ExceptionHandlingMiddleware` using `entry.GetDatabaseValuesAsync()`. Only non-shadow mapped properties are included, in camelCase.
+
+### Migration rule
+
+After adding `IVersionedEntity` to a new aggregate, add this to its EF config and create a migration. The default value `1` backfills existing rows.
+
+---
+
 ## Key Rules Summary
 
 1. **No public setters on entities.** All state changes through named methods.

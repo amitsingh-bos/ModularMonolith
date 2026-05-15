@@ -11,6 +11,13 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.ToTable("Orders", "orders");
         builder.HasKey(o => o.Id);
 
+        builder.Property(o => o.Version)
+            .HasColumnName("version")
+            .HasColumnType("integer")
+            .HasDefaultValue(1)
+            .IsConcurrencyToken()
+            .IsRequired();
+
         builder.Property(o => o.OrderNumber).IsRequired().HasMaxLength(50);
         builder.Property(o => o.ShippingAddressLine1).IsRequired().HasMaxLength(200);
         builder.Property(o => o.ShippingAddressLine2).HasMaxLength(200);

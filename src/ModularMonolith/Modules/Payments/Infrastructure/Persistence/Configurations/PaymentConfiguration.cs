@@ -12,6 +12,13 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.ToTable("Payments", "payments");
         builder.HasKey(p => p.Id);
 
+        builder.Property(p => p.Version)
+            .HasColumnName("version")
+            .HasColumnType("integer")
+            .HasDefaultValue(1)
+            .IsConcurrencyToken()
+            .IsRequired();
+
         builder.Property(p => p.Currency).IsRequired().HasMaxLength(3);
         builder.Property(p => p.TransactionReference).HasMaxLength(200);
         builder.Property(p => p.GatewayResponse).HasMaxLength(2000);

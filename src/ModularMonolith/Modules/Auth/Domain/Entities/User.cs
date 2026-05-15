@@ -5,10 +5,11 @@ using ModularMonolith.Modules.Auth.Domain.Enums;
 using ModularMonolith.Modules.Auth.Domain.Events;
 using ModularMonolith.Modules.Auth.Domain.Exceptions;
 using ModularMonolith.Modules.Auth.Domain.ValueObjects;
+using IVersionedEntity = ModularMonolith.BuildingBlocks.Domain.Abstractions.IVersionedEntity;
 
 namespace ModularMonolith.Modules.Auth.Domain.Entities;
 
-public sealed class User : AggregateRoot, IAuditableEntity, ISoftDeletable
+public sealed class User : AggregateRoot, IAuditableEntity, ISoftDeletable, IVersionedEntity
 {
     private readonly List<UserRole> _userRoles = [];
 
@@ -25,6 +26,7 @@ public sealed class User : AggregateRoot, IAuditableEntity, ISoftDeletable
 
     public int FailedLoginAttempts { get; private set; }
     public DateTime? LockoutEnd { get; private set; }
+    public int Version { get; private set; } = 1;
 
     public bool TwoFactorEnabled { get; private set; }
     public TwoFactorMethod? TwoFactorMethod { get; private set; }

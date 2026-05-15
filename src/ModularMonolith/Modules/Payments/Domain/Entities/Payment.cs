@@ -4,10 +4,11 @@ using ModularMonolith.BuildingBlocks.Domain.Primitives;
 using ModularMonolith.Modules.Payments.Domain.Enums;
 using ModularMonolith.Modules.Payments.Domain.Events;
 using ModularMonolith.Modules.Payments.Domain.Exceptions;
+using IVersionedEntity = ModularMonolith.BuildingBlocks.Domain.Abstractions.IVersionedEntity;
 
 namespace ModularMonolith.Modules.Payments.Domain.Entities;
 
-public sealed class Payment : AggregateRoot, IAuditableEntity
+public sealed class Payment : AggregateRoot, IAuditableEntity, IVersionedEntity
 {
     private Payment() { }
 
@@ -24,6 +25,7 @@ public sealed class Payment : AggregateRoot, IAuditableEntity
     public DateTime? RefundedAt { get; private set; }
     public decimal? RefundedAmount { get; private set; }
     public string? Notes { get; private set; }
+    public int Version { get; private set; } = 1;
 
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }

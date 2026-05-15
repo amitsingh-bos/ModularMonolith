@@ -29,6 +29,12 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.IsDeleted).HasDefaultValue(false);
         builder.Property(u => u.FailedLoginAttempts).HasDefaultValue(0).IsRequired();
         builder.Property(u => u.LockoutEnd).IsRequired(false);
+        builder.Property(u => u.Version)
+            .HasColumnName("version")
+            .HasColumnType("integer")
+            .HasDefaultValue(1)
+            .IsConcurrencyToken()
+            .IsRequired();
         builder.Property(u => u.TwoFactorEnabled).HasDefaultValue(false);
         builder.Property(u => u.TwoFactorMethod).HasConversion<string>().HasMaxLength(30).IsRequired(false);
         builder.Property(u => u.TwoFactorSecretKey).HasMaxLength(100).IsRequired(false);

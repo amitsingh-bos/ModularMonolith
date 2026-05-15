@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using ModularMonolith.BuildingBlocks.Application.Common;
 using ModularMonolith.BuildingBlocks.Domain.Exceptions;
 using ModularMonolith.Modules.Auth.Domain.Exceptions;
@@ -33,7 +34,18 @@ public sealed class ExceptionHandlingMiddleware
     {
         var correlationId = context.Items[CorrelationIdMiddleware.ItemKey] as string;
 
-        // specific domain exceptions must come before the base DomainException catch-all
+        // DbUpdateConcurrencyException is handled first: load current DB values for the 409 body.
+        if (ex is DbUpdateConcurrencyException concurrencyEx)
+        {
+            var currentValues = await LoadCurrentDbValuesAsync(concurrencyEx);
+            context.Response.StatusCode = 409;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(
+                ApiResponse.ConcurrencyConflict(currentValues, correlationId));
+            return;
+        }
+
+        // Specific domain exceptions must come before the base DomainException catch-all.
         var (statusCode, message) = ex switch
         {
             ValidationException ve => (400, string.Join("; ", ve.Errors.Select(e => e.ErrorMessage))),
@@ -51,5 +63,24 @@ public sealed class ExceptionHandlingMiddleware
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsJsonAsync(ApiResponse.Fail(message, statusCode, correlationId));
+    }
+
+    private static async Task<IReadOnlyDictionary<string, object?>?> LoadCurrentDbValuesAsync(
+        DbUpdateConcurrencyException ex)
+    {
+        var entry = ex.Entries.FirstOrDefault();
+        if (entry is null) return null;
+
+        var dbValues = await entry.GetDatabaseValuesAsync();
+        if (dbValues is null) return null;
+
+        // Return only mapped (non-shadow) scalar properties in camelCase so the
+        // JSON matches the API's standard property naming convention.
+        return dbValues.Properties
+            .Where(p => !p.IsShadowProperty())
+            .ToDictionary(
+                p => char.ToLowerInvariant(p.Name[0]) + p.Name[1..],
+                p => dbValues[p],
+                StringComparer.Ordinal);
     }
 }

@@ -3,10 +3,11 @@ using ModularMonolith.BuildingBlocks.Domain.Exceptions;
 using ModularMonolith.BuildingBlocks.Domain.Primitives;
 using ModularMonolith.Modules.Catalog.Domain.Events;
 using ModularMonolith.Modules.Catalog.Domain.Exceptions;
+using IVersionedEntity = ModularMonolith.BuildingBlocks.Domain.Abstractions.IVersionedEntity;
 
 namespace ModularMonolith.Modules.Catalog.Domain.Entities;
 
-public sealed class Product : AggregateRoot, IAuditableEntity, ISoftDeletable
+public sealed class Product : AggregateRoot, IAuditableEntity, ISoftDeletable, IVersionedEntity
 {
     private Product() { }
 
@@ -18,6 +19,7 @@ public sealed class Product : AggregateRoot, IAuditableEntity, ISoftDeletable
     public decimal Price { get; private set; }
     public int StockQuantity { get; private set; }
     public bool IsActive { get; private set; }
+    public int Version { get; private set; } = 1;
 
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }

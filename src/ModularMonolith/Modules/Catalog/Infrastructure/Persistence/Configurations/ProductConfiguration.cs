@@ -11,6 +11,13 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.ToTable("Products", "catalog");
         builder.HasKey(p => p.Id);
 
+        builder.Property(p => p.Version)
+            .HasColumnName("version")
+            .HasColumnType("integer")
+            .HasDefaultValue(1)
+            .IsConcurrencyToken()
+            .IsRequired();
+
         builder.Property(p => p.Name).IsRequired().HasMaxLength(200);
         builder.Property(p => p.Description).HasMaxLength(2000);
         builder.Property(p => p.Sku).IsRequired().HasMaxLength(50);

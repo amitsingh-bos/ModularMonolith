@@ -2,10 +2,11 @@ using ModularMonolith.BuildingBlocks.Domain.Abstractions;
 using ModularMonolith.BuildingBlocks.Domain.Primitives;
 using ModularMonolith.Modules.Orders.Domain.Events;
 using ModularMonolith.Modules.Orders.Domain.Exceptions;
+using IVersionedEntity = ModularMonolith.BuildingBlocks.Domain.Abstractions.IVersionedEntity;
 
 namespace ModularMonolith.Modules.Orders.Domain.Entities;
 
-public sealed class Order : AggregateRoot, IAuditableEntity, ISoftDeletable
+public sealed class Order : AggregateRoot, IAuditableEntity, ISoftDeletable, IVersionedEntity
 {
     private Order() { }
 
@@ -22,6 +23,7 @@ public sealed class Order : AggregateRoot, IAuditableEntity, ISoftDeletable
     public string ShippingPostalCode { get; private set; } = string.Empty;
     public string? Notes { get; private set; }
     public decimal TotalAmount { get; private set; }
+    public int Version { get; private set; } = 1;
 
     public IReadOnlyList<OrderItem> Items => _items.AsReadOnly();
 

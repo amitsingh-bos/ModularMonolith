@@ -3,6 +3,7 @@ using ModularMonolith.BuildingBlocks.Application.Abstractions;
 using ModularMonolith.BuildingBlocks.Domain.Abstractions;
 using ModularMonolith.BuildingBlocks.Infrastructure.Multitenancy;
 using ModularMonolith.Modules.Auth.Domain.Entities;
+using IVersionedEntity = ModularMonolith.BuildingBlocks.Domain.Abstractions.IVersionedEntity;
 
 namespace ModularMonolith.BuildingBlocks.Infrastructure.Persistence;
 
@@ -30,6 +31,7 @@ public abstract class BaseDbContext : DbContext
     {
         SetAuditableFields();
         SetTenantId();
+        IncrementVersions();
         FlushAuditEntries();
 
         var result = await base.SaveChangesAsync(cancellationToken);
@@ -40,6 +42,16 @@ public abstract class BaseDbContext : DbContext
 
         _auditLogger.Clear();
         return result;
+    }
+
+    private void IncrementVersions()
+    {
+        foreach (var entry in ChangeTracker.Entries<IVersionedEntity>()
+                     .Where(e => e.State == EntityState.Modified))
+        {
+            var versionProp = entry.Property(nameof(IVersionedEntity.Version));
+            versionProp.CurrentValue = (int)versionProp.CurrentValue! + 1;
+        }
     }
 
     private void SetAuditableFields()
