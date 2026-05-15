@@ -108,4 +108,53 @@ public sealed class JwtTokenService : ITokenService
             return null;
         }
     }
+
+    public string GeneratePasswordResetStepUpToken(Guid userId)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: _options.Issuer,
+            audience: "pwd-reset-stepup",
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(15),
+            signingCredentials: creds);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public Guid? ValidatePasswordResetStepUpToken(string token)
+    {
+        try
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
+            var handler = new JwtSecurityTokenHandler();
+            handler.InboundClaimTypeMap.Clear();
+
+            var principal = handler.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = key,
+                ValidateIssuer = true,
+                ValidIssuer = _options.Issuer,
+                ValidateAudience = true,
+                ValidAudience = "pwd-reset-stepup",
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.FromSeconds(30)
+            }, out _);
+
+            return Guid.Parse(principal.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }

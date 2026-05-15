@@ -5,6 +5,7 @@ import type {
   UserDto, RoleDto, PermissionDto,
   CreateRoleRequest, AssignRoleRequest, AssignPermissionRequest,
   Setup2FaResponse, TwoFactorStatus,
+  ForgotPasswordRequest, ForgotPasswordResponse, ResetPasswordRequest,
 } from '../types';
 
 export const authApi = {
@@ -32,6 +33,13 @@ export const authApi = {
 
   verifyLogin2fa: (data: { twoFactorToken: string; code: string }) =>
     apiClient.post<ApiResponse<TokenResponse>>('/auth/2fa/verify', data).then(r => r.data),
+
+  // Password reset
+  forgotPassword: (data: ForgotPasswordRequest) =>
+    apiClient.post<ApiResponse<ForgotPasswordResponse>>('/auth/forgot-password', data).then(r => r.data),
+
+  resetPassword: (data: ResetPasswordRequest) =>
+    apiClient.post<ApiResponse<null>>('/auth/reset-password', data).then(r => r.data),
 
   // Users
   getUsers: (params?: { tenantId?: string; page?: number; pageSize?: number }) =>

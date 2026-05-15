@@ -50,4 +50,37 @@ public sealed class EmailService : IEmailService
         await client.SendAsync(message, ct);
         await client.DisconnectAsync(quit: true, ct);
     }
+
+    public async Task SendPasswordResetAsync(string toEmail, string resetToken, CancellationToken ct = default)
+    {
+        if (string.IsNullOrEmpty(_options.SmtpHost))
+        {
+            _logger.LogWarning("SMTP not configured. [DEV] Password reset token for {Email}: {Token}", toEmail, resetToken);
+            return;
+        }
+
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(_options.FromName, _options.FromAddress));
+        message.To.Add(MailboxAddress.Parse(toEmail));
+        message.Subject = "Reset your password";
+        message.Body = new BodyBuilder
+        {
+            HtmlBody = $"""
+                        <p>We received a request to reset the password for your account.</p>
+                        <p>Use the token below to reset your password. It expires in <strong>15 minutes</strong>.</p>
+                        <h2 style="letter-spacing:2px;font-family:monospace">{resetToken}</h2>
+                        <p>If you did not request a password reset, you can safely ignore this email.</p>
+                        """
+        }.ToMessageBody();
+
+        using var client = new SmtpClient();
+        await client.ConnectAsync(_options.SmtpHost, _options.SmtpPort,
+            _options.UseSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None, ct);
+
+        if (!string.IsNullOrEmpty(_options.Username))
+            await client.AuthenticateAsync(_options.Username, _options.Password, ct);
+
+        await client.SendAsync(message, ct);
+        await client.DisconnectAsync(quit: true, ct);
+    }
 }
